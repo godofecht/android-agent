@@ -35,31 +35,31 @@ check_deps() {
 create_project() {
     log_info "Creating Android project on VPS..."
     
-    sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_IP" << 'VPS_SCRIPT'
+    sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_IP" "
 set -e
-APP_DIR="/root/SquareApp"
+APP_DIR='/root/SquareApp'
 
 # Create directory structure
-mkdir -p $APP_DIR/app/src/main/java/com/example/squareapp
-mkdir -p $APP_DIR/app/src/main/res/layout
-mkdir -p $APP_DIR/app/src/main/res/values
-mkdir -p $APP_DIR/gradle/wrapper
+mkdir -p \$APP_DIR/app/src/main/java/com/example/squareapp
+mkdir -p \$APP_DIR/app/src/main/res/layout
+mkdir -p \$APP_DIR/app/src/main/res/values
+mkdir -p \$APP_DIR/gradle/wrapper
 
 # settings.gradle
-cat > $APP_DIR/settings.gradle << 'EOF'
-rootProject.name = "SquareApp"
+cat > \$APP_DIR/settings.gradle << 'GRADLE_EOF'
+rootProject.name = \"SquareApp\"
 include 'app'
-EOF
+GRADLE_EOF
 
 # Root build.gradle
-cat > $APP_DIR/build.gradle << 'EOF'
+cat > \$APP_DIR/build.gradle << 'GRADLE_EOF'
 buildscript {
     repositories {
         google()
         mavenCentral()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:8.1.0"
+        classpath \"com.android.tools.build:gradle:8.1.0\"
     }
 }
 allprojects {
@@ -71,27 +71,27 @@ allprojects {
 task clean(type: Delete) {
     delete rootProject.buildDir
 }
-EOF
+GRADLE_EOF
 
 # gradle.properties
-cat > $APP_DIR/gradle.properties << 'EOF'
+cat > \$APP_DIR/gradle.properties << 'GRADLE_EOF'
 org.gradle.jvmargs=-Xmx2048m -Dfile.encoding=UTF-8
 android.useAndroidX=true
 android.suppressUnsupportedCompileSdk=34
-EOF
+GRADLE_EOF
 
 # App build.gradle
-cat > $APP_DIR/app/build.gradle << 'EOF'
+cat > \$APP_DIR/app/build.gradle << 'GRADLE_EOF'
 plugins { id 'com.android.application' }
 android {
     namespace 'com.example.squareapp'
     compileSdk 34
     defaultConfig {
-        applicationId "com.example.squareapp"
+        applicationId \"com.example.squareapp\"
         minSdk 24
         targetSdk 34
         versionCode 1
-        versionName "1.0"
+        versionName \"1.0\"
     }
     buildTypes {
         release { minifyEnabled false }
@@ -100,30 +100,30 @@ android {
 dependencies {
     implementation 'androidx.appcompat:appcompat:1.6.1'
 }
-EOF
+GRADLE_EOF
 
 # AndroidManifest.xml
-cat > $APP_DIR/app/src/main/AndroidManifest.xml << 'EOF'
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+cat > \$APP_DIR/app/src/main/AndroidManifest.xml << 'XML_EOF'
+<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\">
     <application
-        android:allowBackup="true"
-        android:label="SquareApp"
-        android:theme="@style/Theme.AppCompat.Light">
+        android:allowBackup=\"true\"
+        android:label=\"SquareApp\"
+        android:theme=\"@style/Theme.AppCompat.Light\">
         <activity
-            android:name=".MainActivity"
-            android:exported="true">
+            android:name=\".MainActivity\"
+            android:exported=\"true\">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-                <category android:name="android.intent.category.LAUNCHER" />
+                <action android:name=\"android.intent.action.MAIN\" />
+                <category android:name=\"android.intent.category.LAUNCHER\" />
             </intent-filter>
         </activity>
     </application>
 </manifest>
-EOF
+XML_EOF
 
 # MainActivity.java - draws a blue square
-cat > $APP_DIR/app/src/main/java/com/example/squareapp/MainActivity.java << 'EOF'
+cat > \$APP_DIR/app/src/main/java/com/example/squareapp/MainActivity.java << 'JAVA_EOF'
 package com.example.squareapp;
 import android.app.Activity;
 import android.content.Context;
@@ -159,36 +159,36 @@ public class MainActivity extends Activity {
         }
     }
 }
-EOF
+JAVA_EOF
 
 # gradle-wrapper.properties
-cat > $APP_DIR/gradle/wrapper/gradle-wrapper.properties << 'EOF'
+cat > \$APP_DIR/gradle/wrapper/gradle-wrapper.properties << 'PROPS_EOF'
 distributionBase=GRADLE_USER_HOME
 distributionPath=wrapper/dists
 distributionUrl=https\://services.gradle.org/distributions/gradle-8.0-bin.zip
 zipStoreBase=GRADLE_USER_HOME
 zipStorePath=wrapper/dists
-EOF
+PROPS_EOF
 
-log_info "Project created at $APP_DIR"
-VPS_SCRIPT
+echo \"Project created at \$APP_DIR\"
+"
 }
 
 # Build APK on VPS
 build_apk() {
     log_info "Building APK on VPS..."
     
-    sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_IP" << 'VPS_SCRIPT'
+    sshpass -p "$VPS_PASSWORD" ssh -o StrictHostKeyChecking=no "$VPS_USER@$VPS_IP" "
 set -e
 export ANDROID_HOME=/opt/android-sdk
-export PATH=$PATH:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$ANDROID_HOME/build-tools/34.0.0:/opt/gradle-8.0/bin
+export PATH=\$PATH:\$ANDROID_HOME/cmdline-tools/latest/bin:\$ANDROID_HOME/platform-tools:\$ANDROID_HOME/build-tools/34.0.0:/opt/gradle-8.0/bin
 
 cd /root/SquareApp
 /opt/gradle-8.0/bin/gradle assembleDebug --no-daemon
 
-echo "Build complete!"
+echo 'Build complete!'
 ls -la /root/SquareApp/app/build/outputs/apk/debug/
-VPS_SCRIPT
+"
 }
 
 # Download APK
